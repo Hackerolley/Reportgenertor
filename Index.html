@@ -1,0 +1,864 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Alhuruuf Institute — Report Card Generator</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700&family=Amiri:wght@400;700&family=Sora:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<style>
+  :root{
+    --ink:#211f1b;
+    --muted:#8b8170;
+    --gold:#b9912c;
+    --gold-deep:#8f6f1d;
+    --gold-tint:#f7eecb;
+    --gold-tint-2:#fbf6e6;
+    --line:#e7ddc1;
+    --paper:#fffefb;
+    --bg:#f3efe4;
+    --radius:16px;
+  }
+
+  *{box-sizing:border-box;}
+  html,body{margin:0;}
+  body{
+    font-family:'Inter',sans-serif;
+    background:
+      radial-gradient(circle at 12% 8%, #fbf6e6 0%, transparent 45%),
+      radial-gradient(circle at 90% 90%, #f4ecd2 0%, transparent 40%),
+      var(--bg);
+    color:var(--ink);
+    min-height:100vh;
+    padding:40px 16px 70px;
+  }
+
+  .app{max-width:980px;margin:0 auto;display:grid;gap:30px;}
+
+  .app-title{text-align:center;margin-bottom:4px;}
+  .app-title .eyebrow{
+    font-family:'Sora',sans-serif;
+    font-size:11px;
+    letter-spacing:2.5px;
+    text-transform:uppercase;
+    color:var(--gold-deep);
+    font-weight:600;
+  }
+  .app-title h1{
+    font-family:'Sora',sans-serif;
+    font-size:28px;
+    font-weight:700;
+    margin:6px 0 4px;
+    color:var(--ink);
+  }
+  .app-title p{margin:0;color:var(--muted);font-size:14px;}
+
+  /* ---------- FORM PANEL ---------- */
+  .panel{
+    background:var(--paper);
+    border:1px solid var(--line);
+    border-radius:var(--radius);
+    padding:28px 30px;
+    box-shadow:0 8px 30px rgba(140,110,30,.08);
+  }
+  .panel h2{
+    font-family:'Sora',sans-serif;
+    font-size:13px;
+    text-transform:uppercase;
+    letter-spacing:1.4px;
+    color:var(--gold-deep);
+    margin:0 0 20px;
+    font-weight:700;
+    display:flex;
+    align-items:center;
+    gap:8px;
+  }
+  .panel h2::after{
+    content:'';
+    flex:1;
+    height:1px;
+    background:var(--line);
+  }
+
+  .field-row{
+    display:grid;
+    grid-template-columns:1fr 1fr 1.4fr;
+    gap:16px;
+    margin-bottom:22px;
+  }
+  @media (max-width:680px){ .field-row{grid-template-columns:1fr;} }
+
+  .field label{
+    display:block;
+    font-size:11.5px;
+    font-weight:600;
+    text-transform:uppercase;
+    letter-spacing:.6px;
+    color:var(--muted);
+    margin-bottom:7px;
+  }
+  .field input, .field select{
+    width:100%;
+    padding:11px 13px;
+    border:1.5px solid var(--line);
+    border-radius:10px;
+    font-size:14px;
+    font-family:'Inter',sans-serif;
+    background:#fdfcf8;
+    color:var(--ink);
+    transition:border-color .15s, box-shadow .15s;
+  }
+  .field input:focus, .field select:focus{
+    outline:none;
+    border-color:var(--gold);
+    box-shadow:0 0 0 3px rgba(185,145,44,.15);
+  }
+
+  .subjects-block-label{
+    display:block;font-size:11.5px;font-weight:600;text-transform:uppercase;
+    letter-spacing:.6px;color:var(--muted);margin-bottom:10px;
+  }
+  .subject-row{
+    display:grid;
+    grid-template-columns:1fr 110px 36px;
+    gap:10px;
+    margin-bottom:10px;
+    align-items:center;
+  }
+  @media (max-width:680px){ .subject-row{grid-template-columns:1fr 80px 32px;} }
+
+  .name-wrap{position:relative;}
+  .name-wrap select{
+    width:100%;
+    padding:10px 12px;
+    border:1.5px solid var(--line);
+    border-radius:10px;
+    font-size:14px;
+    background:#fdfcf8;
+    color:var(--ink);
+    font-family:'Inter',sans-serif;
+  }
+  .name-wrap select:focus{
+    outline:none;border-color:var(--gold);box-shadow:0 0 0 3px rgba(185,145,44,.15);
+  }
+  .customWrap{
+    display:none;
+    align-items:center;
+    gap:6px;
+  }
+  .customWrap input{
+    flex:1;
+    width:auto;
+    padding:10px 12px;
+    border:1.5px solid var(--line);
+    border-radius:10px;
+    font-size:14px;
+    background:#fdfcf8;
+    color:var(--ink);
+    font-family:'Inter',sans-serif;
+  }
+  .customWrap input:focus{
+    outline:none;border-color:var(--gold);box-shadow:0 0 0 3px rgba(185,145,44,.15);
+  }
+  .customWrap .backToListBtn{
+    flex:0 0 auto;
+    width:36px;height:36px;
+    border:1.5px solid var(--line);
+    background:#fdfcf8;
+    color:var(--gold-deep);
+    border-radius:10px;
+    cursor:pointer;
+    font-size:14px;
+    display:flex;align-items:center;justify-content:center;
+  }
+  .customWrap .backToListBtn:hover{background:var(--gold-tint);}
+
+  .subject-row .subjectScore{
+    padding:10px 12px;
+    border:1.5px solid var(--line);
+    border-radius:10px;
+    font-size:14px;
+    background:#fdfcf8;
+  }
+  .subject-row .subjectScore:focus{
+    outline:none;border-color:var(--gold);box-shadow:0 0 0 3px rgba(185,145,44,.15);
+  }
+
+  .remove-btn{
+    width:36px;height:36px;
+    border:1.5px solid #ecd3d3;
+    background:#fff6f6;
+    color:#b34b4b;
+    border-radius:10px;
+    cursor:pointer;
+    font-size:16px;
+    display:flex;align-items:center;justify-content:center;
+    transition:.15s;
+  }
+  .remove-btn:hover{background:#ffe9e9;}
+
+  .add-btn{
+    margin-top:8px;
+    padding:10px 18px;
+    background:var(--ink);
+    color:var(--gold-tint);
+    border:1px solid var(--ink);
+    border-radius:10px;
+    font-size:13px;
+    font-weight:600;
+    cursor:pointer;
+    letter-spacing:.3px;
+    font-family:'Inter',sans-serif;
+  }
+  .add-btn:hover{background:#33302a;}
+
+  .comment-field{margin-top:22px;}
+  .comment-field textarea{
+    width:100%;
+    min-height:84px;
+    padding:13px;
+    border:1.5px solid var(--line);
+    border-radius:10px;
+    font-family:'Inter',sans-serif;
+    font-size:14px;
+    resize:vertical;
+    background:#fdfcf8;
+  }
+  .comment-field textarea:focus{
+    outline:none;border-color:var(--gold);box-shadow:0 0 0 3px rgba(185,145,44,.15);
+  }
+
+  .actions{display:flex;justify-content:flex-end;margin-top:8px;}
+  .download-btn{
+    background:linear-gradient(135deg,var(--gold-deep),var(--gold) 60%, #d9b95a);
+    color:#231d0a;
+    border:none;
+    padding:14px 28px;
+    font-size:14px;
+    font-weight:700;
+    letter-spacing:.4px;
+    border-radius:11px;
+    cursor:pointer;
+    box-shadow:0 6px 18px rgba(143,111,29,.3);
+    transition:transform .12s ease;
+    font-family:'Sora',sans-serif;
+  }
+  .download-btn:hover{transform:translateY(-1px);}
+  .download-btn:active{transform:translateY(0);}
+  .download-btn[disabled]{opacity:.6;cursor:wait;}
+
+  /* ---------- REPORT CARD ---------- */
+  .preview-wrap{display:flex;justify-content:center;}
+  #reportCardOuter{
+    background:#fff;
+    border-radius:14px;
+    box-shadow:0 14px 46px rgba(60,46,10,.16);
+    overflow:hidden;
+    width:760px;
+  }
+  #reportCard{
+    background:var(--paper);
+    position:relative;
+  }
+
+  .rc-header{
+    padding:36px 44px 22px;
+    position:relative;
+  }
+  .rc-header::before{
+    /* subtle corner ornament, top-left */
+    content:'';
+    position:absolute;
+    top:18px;left:20px;
+    width:34px;height:34px;
+    border-top:2px solid var(--gold);
+    border-left:2px solid var(--gold);
+    border-top-left-radius:8px;
+  }
+  .rc-header::after{
+    content:'';
+    position:absolute;
+    top:18px;right:20px;
+    width:34px;height:34px;
+    border-top:2px solid var(--gold);
+    border-right:2px solid var(--gold);
+    border-top-right-radius:8px;
+  }
+
+  .rc-header-row{
+    display:flex;
+    align-items:center;
+    gap:22px;
+  }
+  .rc-logo{
+    flex:0 0 auto;
+    width:68px;height:68px;
+    border-radius:50%;
+    border:2px solid var(--gold);
+    background:var(--gold-tint-2);
+    display:flex;align-items:center;justify-content:center;
+    text-align:center;
+    font-family:'Sora',sans-serif;
+    font-size:9.5px;
+    font-weight:600;
+    color:var(--gold-deep);
+    letter-spacing:.4px;
+    line-height:1.3;
+  }
+  .rc-school-block{flex:1;text-align:center;}
+  .rc-school-name-en{
+    font-family:'Cinzel',serif;
+    font-size:24px;
+    font-weight:700;
+    color:var(--gold-deep);
+    margin:0;
+    letter-spacing:2.2px;
+    text-shadow:0 1px 0 rgba(255,255,255,.6);
+  }
+  .rc-name-ornament{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:10px;
+    margin:7px 0;
+  }
+  .rc-name-ornament .ln{
+    height:1px;
+    width:54px;
+    background:linear-gradient(to right, transparent, var(--gold));
+  }
+  .rc-name-ornament .ln.right{
+    background:linear-gradient(to left, transparent, var(--gold));
+  }
+  .rc-name-ornament .star{
+    color:var(--gold);
+    font-size:11px;
+  }
+  .rc-school-name-ar{
+    font-family:'Amiri',serif;
+    font-weight:700;
+    font-size:20px;
+    color:var(--gold-deep);
+    margin:0 0 10px;
+    direction:rtl;
+  }
+  .rc-school-sub{
+    font-size:10.8px;
+    color:var(--muted);
+    margin:0;
+    line-height:1.55;
+    letter-spacing:.2px;
+  }
+  .rc-school-sub b{color:var(--ink);}
+  .rc-logo-mirror{
+    flex:0 0 auto;
+    width:68px;height:68px;
+    border-radius:50%;
+    border:2px solid var(--gold);
+    background:var(--gold-tint-2);
+    display:flex;align-items:center;justify-content:center;
+    color:var(--gold-deep);
+    font-size:22px;
+  }
+
+  .rc-divider{
+    height:1px;
+    background:linear-gradient(to right, transparent, var(--gold), transparent);
+    margin:20px 44px 0;
+  }
+
+  .rc-title-row{
+    display:flex;
+    justify-content:center;
+    margin:18px 0 0;
+  }
+  .rc-title-badge{
+    font-family:'Sora',sans-serif;
+    font-size:11.5px;
+    font-weight:700;
+    text-transform:uppercase;
+    letter-spacing:2px;
+    color:var(--gold-deep);
+    background:var(--gold-tint);
+    padding:7px 20px;
+    border-radius:30px;
+  }
+
+  .rc-body{padding:22px 44px 6px;}
+
+  .rc-meta{
+    display:grid;
+    grid-template-columns:1.4fr 1fr 1fr;
+    gap:14px;
+    margin-bottom:24px;
+  }
+  .rc-meta-item{
+    background:var(--gold-tint-2);
+    border:1px solid var(--line);
+    border-radius:10px;
+    padding:10px 14px;
+  }
+  .rc-meta-item .lbl{
+    font-size:9.5px;
+    text-transform:uppercase;
+    letter-spacing:1px;
+    color:var(--muted);
+    font-weight:600;
+  }
+  .rc-meta-item .val{
+    font-size:15px;
+    font-weight:700;
+    color:var(--ink);
+    margin-top:3px;
+    font-family:'Sora',sans-serif;
+  }
+
+  table.rc-table{
+    width:100%;
+    border-collapse:separate;
+    border-spacing:0;
+    margin-bottom:8px;
+    border:1px solid var(--line);
+    border-radius:10px;
+    overflow:hidden;
+  }
+  table.rc-table thead th{
+    background:var(--gold-tint);
+    color:var(--gold-deep);
+    font-size:10.5px;
+    text-transform:uppercase;
+    letter-spacing:1px;
+    padding:11px 16px;
+    text-align:left;
+    font-family:'Sora',sans-serif;
+    font-weight:700;
+  }
+  table.rc-table thead th:last-child{text-align:right;}
+  table.rc-table tbody td{
+    padding:11px 16px;
+    font-size:14px;
+    border-top:1px solid var(--line);
+  }
+  table.rc-table tbody td:last-child{text-align:right;font-weight:700;color:var(--gold-deep);}
+  table.rc-table tbody tr:nth-child(even){background:#fbf8ee;}
+  table.rc-table tbody tr.empty-row td{
+    text-align:center;
+    color:#a89f8a;
+    font-style:italic;
+    padding:20px;
+  }
+
+  .rc-summary{
+    display:flex;
+    justify-content:flex-end;
+    gap:14px;
+    margin:16px 0 22px;
+  }
+  .rc-stat{
+    text-align:center;
+    background:var(--gold-tint-2);
+    border:1px solid var(--line);
+    border-radius:10px;
+    padding:10px 22px;
+    min-width:100px;
+  }
+  .rc-stat .lbl{
+    font-size:9.5px;
+    text-transform:uppercase;
+    letter-spacing:1px;
+    color:var(--muted);
+    font-weight:600;
+  }
+  .rc-stat .val{
+    font-size:20px;
+    font-weight:700;
+    color:var(--gold-deep);
+    font-family:'Sora',sans-serif;
+    margin-top:2px;
+  }
+
+  .rc-comment{
+    border:1px solid var(--line);
+    border-left:3px solid var(--gold);
+    border-radius:8px;
+    padding:14px 18px;
+    margin-bottom:28px;
+    background:#fffefc;
+  }
+  .rc-comment .lbl{
+    font-size:9.5px;
+    text-transform:uppercase;
+    letter-spacing:1px;
+    color:var(--muted);
+    font-weight:700;
+    margin-bottom:7px;
+    font-family:'Sora',sans-serif;
+  }
+  .rc-comment .txt{
+    font-size:13.5px;
+    line-height:1.6;
+    color:var(--ink);
+    min-height:18px;
+    white-space:pre-wrap;
+  }
+
+  .rc-signatures{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:30px;
+    margin-top:6px;
+    padding-bottom:30px;
+  }
+  .rc-sign-line{
+    border-top:1.4px solid var(--ink);
+    padding-top:7px;
+    font-size:10.5px;
+    color:var(--muted);
+    text-align:center;
+    letter-spacing:.6px;
+    text-transform:uppercase;
+    font-family:'Sora',sans-serif;
+  }
+
+  .rc-footer-band{
+    border-top:1px solid var(--line);
+    text-align:center;
+    font-size:9px;
+    color:var(--muted);
+    padding:12px;
+    letter-spacing:.4px;
+    font-family:'Sora',sans-serif;
+  }
+
+  @media print{
+    body{background:#fff;padding:0;}
+    .panel, .app-title{display:none;}
+  }
+</style>
+</head>
+<body>
+
+<div class="app">
+
+  <div class="app-title">
+    <div class="eyebrow">Alhuruuf Institute</div>
+    <h1>Report Card Generator</h1>
+    <p>Quranic Memorization &amp; Islamic Studies — Ayobo, Lagos</p>
+  </div>
+
+  <!-- ===== FORM ===== -->
+  <div class="panel">
+    <h2>Report Details</h2>
+
+    <div class="field-row">
+      <div class="field">
+        <label for="quarter">Quarter</label>
+        <select id="quarter">
+          <option value="1st Quarter">1st Quarter</option>
+          <option value="2nd Quarter">2nd Quarter</option>
+          <option value="3rd Quarter">3rd Quarter</option>
+          <option value="4th Quarter">4th Quarter</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="reportDate">Date</label>
+        <input type="date" id="reportDate">
+      </div>
+      <div class="field">
+        <label for="studentName">Student Name</label>
+        <input type="text" id="studentName" placeholder="e.g. Abdulrahman Yusuf">
+      </div>
+    </div>
+
+    <label class="subjects-block-label">Subjects &amp; Scores</label>
+    <div id="subjectRows"></div>
+    <button class="add-btn" id="addSubjectBtn" type="button">+ Add Subject</button>
+
+    <div class="comment-field">
+      <label for="teacherComment" style="display:block;font-size:11.5px;font-weight:600;text-transform:uppercase;letter-spacing:.6px;color:var(--muted);margin-bottom:7px;">Teacher's Comment</label>
+      <textarea id="teacherComment" placeholder="Write a comment about the student's performance and conduct..."></textarea>
+    </div>
+
+    <div class="actions">
+      <button class="download-btn" id="downloadBtn" type="button">⬇ Download as PDF (A4)</button>
+    </div>
+  </div>
+
+  <!-- ===== PRINTABLE REPORT CARD ===== -->
+  <div class="preview-wrap">
+    <div id="reportCardOuter">
+      <div id="reportCard">
+
+        <div class="rc-header">
+          <div class="rc-header-row">
+            <div class="rc-logo">LOGO<br>HERE</div>
+            <div class="rc-school-block">
+              <p class="rc-school-name-en">ALHURUUF INSTITUTE</p>
+              <div class="rc-name-ornament"><span class="ln"></span><span class="star">✦</span><span class="ln right"></span></div>
+              <p class="rc-school-name-ar">معهد الحروف لتحفيظ القرآن والدراسات الإسلامية</p>
+              <p class="rc-school-sub">
+                <b>For Quranic Memorization &amp; Islamic Studies</b><br>
+                38 Akeem Salami Olayemi, Ayobo, Lagos<br>
+                Tel: 234&nbsp;814&nbsp;631&nbsp;0400 · 234&nbsp;814&nbsp;634&nbsp;8838 &nbsp;|&nbsp; alhuruuf@gmail.com
+              </p>
+            </div>
+            <div class="rc-logo-mirror">☆</div>
+          </div>
+        </div>
+
+        <div class="rc-divider"></div>
+
+        <div class="rc-title-row">
+          <span class="rc-title-badge">Student Report Card</span>
+        </div>
+
+        <div class="rc-body">
+          <div class="rc-meta">
+            <div class="rc-meta-item">
+              <div class="lbl">Student Name</div>
+              <div class="val" id="pvName">—</div>
+            </div>
+            <div class="rc-meta-item">
+              <div class="lbl">Quarter</div>
+              <div class="val" id="pvQuarter">—</div>
+            </div>
+            <div class="rc-meta-item">
+              <div class="lbl">Date</div>
+              <div class="val" id="pvDate">—</div>
+            </div>
+          </div>
+
+          <table class="rc-table">
+            <thead>
+              <tr><th>Subject</th><th style="text-align:right;">Score (/100)</th></tr>
+            </thead>
+            <tbody id="pvSubjectsBody">
+              <tr class="empty-row"><td colspan="2">No subjects added yet</td></tr>
+            </tbody>
+          </table>
+
+          <div class="rc-summary">
+            <div class="rc-stat">
+              <div class="lbl">Total</div>
+              <div class="val" id="pvTotal">0</div>
+            </div>
+            <div class="rc-stat">
+              <div class="lbl">Average</div>
+              <div class="val" id="pvAverage">0.0</div>
+            </div>
+          </div>
+
+          <div class="rc-comment">
+            <div class="lbl">Teacher's Comment</div>
+            <div class="txt" id="pvComment">—</div>
+          </div>
+
+          <div class="rc-signatures">
+            <div class="rc-sign-line">Class Teacher's Signature</div>
+            <div class="rc-sign-line">Principal's Signature</div>
+          </div>
+        </div>
+
+        <div class="rc-footer-band">ALHURUUF INSTITUTE FOR QURANIC MEMORIZATION &amp; ISLAMIC STUDIES · AYOBO, LAGOS</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  const PRESET_SUBJECTS = [
+    'Quran Memorization',
+    'Qiroaha (Recitation)',
+    'Arabiyya',
+    'Hadith',
+    'Adhkaar',
+    'Tajweed',
+    'Khottu',
+    'Tawheed'
+  ];
+
+  let subjectCount = 0;
+
+  function buildSubjectOptions(selectedValue){
+    let opts = `<option value="" disabled ${!selectedValue ? 'selected' : ''}>Select subject</option>`;
+    PRESET_SUBJECTS.forEach(s => {
+      opts += `<option value="${s}" ${s === selectedValue ? 'selected' : ''}>${s}</option>`;
+    });
+    const isCustom = selectedValue && !PRESET_SUBJECTS.includes(selectedValue);
+    opts += `<option value="__other__" ${isCustom ? 'selected' : ''}>Other (type custom)</option>`;
+    return opts;
+  }
+
+  function addSubjectRow(name = '', score = ''){
+    subjectCount++;
+    const id = 'subject-' + subjectCount;
+    const row = document.createElement('div');
+    row.className = 'subject-row';
+    row.dataset.id = id;
+
+    const isCustom = name && !PRESET_SUBJECTS.includes(name);
+
+    row.innerHTML = `
+      <div class="name-wrap">
+        <select class="subjectSelect" style="display:${isCustom ? 'none' : 'block'};">${buildSubjectOptions(name)}</select>
+        <div class="customWrap" style="display:${isCustom ? 'flex' : 'none'};">
+          <input type="text" class="customSubjectInput" placeholder="Type custom subject name" value="${isCustom ? name : ''}">
+          <button type="button" class="backToListBtn" title="Choose from list">↺</button>
+        </div>
+      </div>
+      <input type="number" class="subjectScore" placeholder="Score" min="0" max="100" value="${score}">
+      <button type="button" class="remove-btn" aria-label="Remove subject">✕</button>
+    `;
+    document.getElementById('subjectRows').appendChild(row);
+
+    const select = row.querySelector('.subjectSelect');
+    const customWrap = row.querySelector('.customWrap');
+    const customInput = row.querySelector('.customSubjectInput');
+    const backToListBtn = row.querySelector('.backToListBtn');
+
+    select.addEventListener('change', () => {
+      if(select.value === '__other__'){
+        select.style.display = 'none';
+        customWrap.style.display = 'flex';
+        customInput.focus();
+      }
+      updatePreview();
+    });
+    backToListBtn.addEventListener('click', () => {
+      customWrap.style.display = 'none';
+      customInput.value = '';
+      select.style.display = 'block';
+      select.value = '';
+      updatePreview();
+    });
+    customInput.addEventListener('input', updatePreview);
+    row.querySelector('.subjectScore').addEventListener('input', updatePreview);
+    row.querySelector('.remove-btn').addEventListener('click', () => {
+      row.remove();
+      updatePreview();
+    });
+  }
+
+  function escapeHtml(str){
+    return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  }
+
+  function formatDate(value){
+    if(!value) return '—';
+    const [y,m,d] = value.split('-');
+    const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    return `${d} ${months[parseInt(m,10)-1]} ${y}`;
+  }
+
+  function updatePreview(){
+    const name = document.getElementById('studentName').value.trim();
+    const quarter = document.getElementById('quarter').value;
+    const date = document.getElementById('reportDate').value;
+    const comment = document.getElementById('teacherComment').value.trim();
+
+    document.getElementById('pvName').textContent = name || '—';
+    document.getElementById('pvQuarter').textContent = quarter || '—';
+    document.getElementById('pvDate').textContent = formatDate(date);
+    document.getElementById('pvComment').textContent = comment || '—';
+
+    const rows = [...document.querySelectorAll('.subject-row')];
+    const body = document.getElementById('pvSubjectsBody');
+    body.innerHTML = '';
+
+    let total = 0;
+    let validCount = 0;
+
+    if(rows.length === 0){
+      body.innerHTML = '<tr class="empty-row"><td colspan="2">No subjects added yet</td></tr>';
+    } else {
+      rows.forEach(row => {
+        const select = row.querySelector('.subjectSelect');
+        const customInput = row.querySelector('.customSubjectInput');
+        const subj = select.value === '__other__' ? customInput.value.trim() : select.value;
+
+        const scoreRaw = row.querySelector('.subjectScore').value;
+        const score = parseFloat(scoreRaw);
+        const hasScore = !isNaN(score);
+        if(hasScore){ total += score; validCount++; }
+
+        const tr = document.createElement('tr');
+        tr.innerHTML = `<td>${escapeHtml(subj || 'Untitled subject')}</td><td>${hasScore ? score : '—'}</td>`;
+        body.appendChild(tr);
+      });
+    }
+
+    document.getElementById('pvTotal').textContent = total;
+    document.getElementById('pvAverage').textContent = validCount > 0 ? (total / validCount).toFixed(1) : '0.0';
+  }
+
+  document.getElementById('addSubjectBtn').addEventListener('click', () => addSubjectRow());
+  document.getElementById('studentName').addEventListener('input', updatePreview);
+  document.getElementById('quarter').addEventListener('change', updatePreview);
+  document.getElementById('reportDate').addEventListener('change', updatePreview);
+  document.getElementById('teacherComment').addEventListener('input', updatePreview);
+
+  // seed with 3 starter rows
+  addSubjectRow('');
+  addSubjectRow('');
+  addSubjectRow('');
+  updatePreview();
+
+  // ---- PDF DOWNLOAD: always fit to a single A4 page ----
+  document.getElementById('downloadBtn').addEventListener('click', async () => {
+    const btn = document.getElementById('downloadBtn');
+    const original = btn.textContent;
+    btn.disabled = true;
+    btn.textContent = 'Generating PDF...';
+
+    try{
+      const card = document.getElementById('reportCard');
+      const canvas = await html2canvas(card, {
+        scale: 2.5,
+        backgroundColor: '#ffffff',
+        useCORS: true
+      });
+
+      const imgData = canvas.toDataURL('image/png');
+      const { jsPDF } = window.jspdf;
+      const pdf = new jsPDF('p', 'mm', 'a4');
+
+      const pageWidth = pdf.internal.pageSize.getWidth();   // 210mm
+      const pageHeight = pdf.internal.pageSize.getHeight(); // 297mm
+      const margin = 8;
+
+      const maxWidth = pageWidth - margin * 2;
+      const maxHeight = pageHeight - margin * 2;
+
+      const imgRatio = canvas.height / canvas.width;
+      let renderWidth = maxWidth;
+      let renderHeight = renderWidth * imgRatio;
+
+      if(renderHeight > maxHeight){
+        renderHeight = maxHeight;
+        renderWidth = renderHeight / imgRatio;
+      }
+
+      const x = (pageWidth - renderWidth) / 2;
+      const y = (pageHeight - renderHeight) / 2;
+
+      pdf.addImage(imgData, 'PNG', x, y, renderWidth, renderHeight);
+
+      const studentName = document.getElementById('studentName').value.trim() || 'Student';
+      const quarter = document.getElementById('quarter').value.replace(/\s+/g,'_');
+      const safeName = studentName.replace(/[^a-z0-9]+/gi, '_');
+      pdf.save(`ReportCard_${safeName}_${quarter}.pdf`);
+    } catch(err){
+      console.error(err);
+      alert('Something went wrong generating the PDF. Please try again.');
+    } finally {
+      btn.disabled = false;
+      btn.textContent = original;
+    }
+  });
+</script>
+
+</body>
+</html>
